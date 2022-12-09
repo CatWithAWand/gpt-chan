@@ -45,7 +45,7 @@ const commandFiles = fs
 for (const file of commandFiles) {
   const filePath = path.join(commandsPath, file);
   const command = (await import(filePath)).default as unknown as SlashCommand;
-  console.log(command);
+
   if ('data' in command && 'execute' in command) {
     commands.set(command.data.name, command);
   } else {
@@ -91,11 +91,15 @@ client.on(Events.MessageCreate, async (message) => {
 
     await message.channel.sendTyping();
 
-    const reply = await conversation.sendMessage(message.content, {
-      timeoutMs: 60000,
-    });
-
-    await message.reply(isEmptyString(reply) ? 'ChatGPT timed out.' : reply);
+    try {
+      const reply = await conversation.sendMessage(message.content, {
+        timeoutMs: 60000,
+      });
+      await message.reply(reply);
+    } catch (error) {
+      console.error(error);
+      await message.reply('ChatGPT timed out.');
+    }
   }
 });
 
