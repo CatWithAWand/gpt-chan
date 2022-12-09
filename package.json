@@ -34,8 +34,7 @@
     "lint": "eslint . --ext .ts",
     "lint:fix": "eslint . --ext .ts --fix",
     "prettier": "prettier --write .",
-    "start": "ts-node-esm src/index.ts",
-    "start:node": "node dist/index.js"
+    "start": "ts-node-esm src/index.ts"
   },
   "dependencies": {
     "chatgpt": "^2.0.5",
