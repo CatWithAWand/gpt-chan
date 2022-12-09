@@ -753,6 +753,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"bindings@npm:^1.5.0":
+  version: 1.5.0
+  resolution: "bindings@npm:1.5.0"
+  dependencies:
+    file-uri-to-path: 1.0.0
+  checksum: 65b6b48095717c2e6105a021a7da4ea435aa8d3d3cd085cb9e85bcb6e5773cf318c4745c3f7c504412855940b585bdf9b918236612a1c7a7942491de176f1ae7
+  languageName: node
+  linkType: hard
+
 "bl@npm:^4.1.0":
   version: 4.1.0
   resolution: "bl@npm:4.1.0"
@@ -799,6 +808,16 @@ __metadata:
     base64-js: ^1.3.1
     ieee754: ^1.1.13
   checksum: e2cf8429e1c4c7b8cbd30834ac09bd61da46ce35f5c22a78e6c2f04497d6d25541b16881e30a019c6fd3154150650ccee27a308eff3e26229d788bbdeb08ab84
+  languageName: node
+  linkType: hard
+
+"bufferutil@npm:^4.0.7":
+  version: 4.0.7
+  resolution: "bufferutil@npm:4.0.7"
+  dependencies:
+    node-gyp: latest
+    node-gyp-build: ^4.3.0
+  checksum: f75aa87e3d1b99b87a95f60a855e63f70af07b57fb8443e75a2ddfef2e47788d130fdd46e3a78fd7e0c10176082b26dfbed970c5b8632e1cc299cafa0e93ce45
   languageName: node
   linkType: hard
 
@@ -1341,6 +1360,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"erlpack@npm:^0.1.4":
+  version: 0.1.4
+  resolution: "erlpack@npm:0.1.4"
+  dependencies:
+    bindings: ^1.5.0
+    nan: ^2.15.0
+    node-gyp: latest
+  checksum: d5bcc4a5eddec0b6040f9ef9dc028250c14343d275d6e091dc2db2bcaecc11b09cdf119720a333afba688cf35cd5a1da4ecdc79862c4d15f5426a90e756cfc50
+  languageName: node
+  linkType: hard
+
 "err-code@npm:^2.0.2":
   version: 2.0.3
   resolution: "err-code@npm:2.0.3"
@@ -1680,6 +1710,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"file-uri-to-path@npm:1.0.0":
+  version: 1.0.0
+  resolution: "file-uri-to-path@npm:1.0.0"
+  checksum: b648580bdd893a008c92c7ecc96c3ee57a5e7b6c4c18a9a09b44fb5d36d79146f8e442578bc0e173dc027adf3987e254ba1dfd6e3ec998b7c282873010502144
+  languageName: node
+  linkType: hard
+
 "fill-range@npm:^7.0.1":
   version: 7.0.1
   resolution: "fill-range@npm:7.0.1"
@@ -1923,11 +1960,13 @@ __metadata:
     "@types/node": ^18.11.12
     "@typescript-eslint/eslint-plugin": ^5.46.0
     "@typescript-eslint/parser": ^5.46.0
+    bufferutil: ^4.0.7
     chatgpt: ^2.0.5
     commitizen: ^4.2.6
     cz-conventional-changelog: 3.3.0
     discord.js: ^14.7.1
     dotenv: ^16.0.3
+    erlpack: ^0.1.4
     eslint: ^8.29.0
     eslint-config-prettier: ^8.5.0
     eslint-plugin-prettier: ^4.2.1
@@ -1937,6 +1976,8 @@ __metadata:
     prettier: ^2.8.1
     ts-node: ^10.9.1
     typescript: ^4.9.4
+    utf-8-validate: ^5.0.10
+    zlib-sync: ^0.1.7
   languageName: unknown
   linkType: soft
 
@@ -3047,6 +3088,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"nan@npm:^2.14.0, nan@npm:^2.15.0":
+  version: 2.17.0
+  resolution: "nan@npm:2.17.0"
+  dependencies:
+    node-gyp: latest
+  checksum: ec609aeaf7e68b76592a3ba96b372aa7f5df5b056c1e37410b0f1deefbab5a57a922061e2c5b369bae9c7c6b5e6eecf4ad2dac8833a1a7d3a751e0a7c7f849ed
+  languageName: node
+  linkType: hard
+
 "natural-compare-lite@npm:^1.4.0":
   version: 1.4.0
   resolution: "natural-compare-lite@npm:1.4.0"
@@ -3065,6 +3115,17 @@ __metadata:
   version: 0.6.3
   resolution: "negotiator@npm:0.6.3"
   checksum: b8ffeb1e262eff7968fc90a2b6767b04cfd9842582a9d0ece0af7049537266e7b2506dfb1d107a32f06dd849ab2aea834d5830f7f4d0e5cb7d36e1ae55d021d9
+  languageName: node
+  linkType: hard
+
+"node-gyp-build@npm:^4.3.0":
+  version: 4.5.0
+  resolution: "node-gyp-build@npm:4.5.0"
+  bin:
+    node-gyp-build: bin.js
+    node-gyp-build-optional: optional.js
+    node-gyp-build-test: build-test.js
+  checksum: d888bae0fb88335f69af1b57a2294a931c5042f36e413d8d364c992c9ebfa0b96ffe773179a5a2c8f04b73856e8634e09cce108dbb9804396d3cc8c5455ff2db
   languageName: node
   linkType: hard
 
@@ -4176,6 +4237,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"utf-8-validate@npm:^5.0.10":
+  version: 5.0.10
+  resolution: "utf-8-validate@npm:5.0.10"
+  dependencies:
+    node-gyp: latest
+    node-gyp-build: ^4.3.0
+  checksum: 5579350a023c66a2326752b6c8804cc7b39dcd251bb088241da38db994b8d78352e388dcc24ad398ab98385ba3c5ffcadb6b5b14b2637e43f767869055e46ba6
+  languageName: node
+  linkType: hard
+
 "util-deprecate@npm:^1.0.1":
   version: 1.0.2
   resolution: "util-deprecate@npm:1.0.2"
@@ -4358,6 +4429,16 @@ __metadata:
   version: 0.1.0
   resolution: "yocto-queue@npm:0.1.0"
   checksum: f77b3d8d00310def622123df93d4ee654fc6a0096182af8bd60679ddcdfb3474c56c6c7190817c84a2785648cdee9d721c0154eb45698c62176c322fb46fc700
+  languageName: node
+  linkType: hard
+
+"zlib-sync@npm:^0.1.7":
+  version: 0.1.7
+  resolution: "zlib-sync@npm:0.1.7"
+  dependencies:
+    nan: ^2.14.0
+    node-gyp: latest
+  checksum: 8f6ef7bf5726b41fefffa4509f5679872b425ef47227a59d8c787b32518db6220961262f78b0f6eb1dcd9b52cd71bc8213d4f061b8b56a9b7e82c345a548e6f4
   languageName: node
   linkType: hard
 

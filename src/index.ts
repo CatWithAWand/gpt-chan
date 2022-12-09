@@ -1,19 +1,10 @@
-import fs from 'node:fs';
-import path from 'node:path';
-import {
-  Client,
-  Collection,
-  Events,
-  GatewayIntentBits,
-  Partials,
-} from 'discord.js';
-import type { ChatGPTConversation } from 'chatgpt';
-import { ChatGPTAPI } from 'chatgpt';
 import dotenv from 'dotenv';
-import type { SlashCommand } from './types/index.js';
-import { deployCommands } from './utils/commandUtils.js';
-import { isEmptyString } from './utils/stringUtils.js';
-import { fileURLToPath } from 'node:url';
+import { Client, Events, GatewayIntentBits, Partials } from 'discord.js';
+import { ChatGPTAPI } from 'chatgpt';
+import store from './store/store.js';
+import { blinkingCursor } from './store/emotes.js';
+import { deployCommands, loadCommands } from './utils/commandUtils.js';
+import { isValidMessage } from './utils/eventUtils.js';
 dotenv.config();
 
 const client = new Client({
@@ -27,85 +18,62 @@ const client = new Client({
     GatewayIntentBits.Guilds,
   ],
 });
-
 const chatgpt = new ChatGPTAPI({
   sessionToken: process.env.CHATGPT_SESSION_TOKEN,
 });
 
-const userConversations: Collection<string, ChatGPTConversation> =
-  new Collection();
-const commands: Collection<string, SlashCommand> = new Collection();
+store.commands = await loadCommands();
 
-const __filename = fileURLToPath(import.meta.url);
-const commandsPath = path.join(path.dirname(__filename), 'commands');
-const commandFiles = fs
-  .readdirSync(commandsPath)
-  .filter((file) => file.endsWith('.js') || file.endsWith('.ts'));
-
-for (const file of commandFiles) {
-  const filePath = path.join(commandsPath, file);
-  const command = (await import(filePath)).default as unknown as SlashCommand;
-
-  if ('data' in command && 'execute' in command) {
-    commands.set(command.data.name, command);
-  } else {
-    console.log(
-      `[WARNING] The command at ${filePath} is missing a required "data" or "execute" property.`,
-    );
-  }
-}
-
-client.once(Events.ClientReady, (c) => {
+client.once(Events.ClientReady, async (c) => {
   console.log(`Ready! Logged in as ${c.user.tag}`);
+  c.user.setStatus('invisible');
+  await deployCommands(c.user.id, store.commands);
+  c.user.setStatus('online');
   c.user.setActivity(`Let's chat!`);
 });
 
 client.on(Events.MessageCreate, async (message) => {
-  if (message.author.bot || !client.user) return;
+  if (!isValidMessage(message)) return;
 
-  if (message.content === '$register_commands') {
-    if (!message.guild) return;
+  let conversation = store.userConversations.get(message.author.id);
 
-    await message.reply('Registering commands...');
-    await message.channel.sendTyping();
-    const status = await deployCommands(
-      client.user.id,
-      message.guild.id,
-      commands,
-    );
-
-    if (status === 'Success') {
-      await message.reply('Successfully registered commands.');
-    } else {
-      await message.reply('Failed to register commands.');
-    }
+  if (!conversation) {
+    conversation = chatgpt.getConversation();
+    store.userConversations.set(message.author.id, conversation);
   }
 
-  if (message.mentions.has(client.user)) {
-    let conversation = userConversations.get(message.author.id);
+  try {
+    let reply = await message.reply(`ChatGPT is thinking... ${blinkingCursor}`);
+    message.channel.sendTyping();
 
-    if (!conversation) {
-      conversation = chatgpt.getConversation();
-      userConversations.set(message.author.id, conversation);
-    }
+    let totalChars = 0;
+    let prevPartialResponse = '';
 
-    await message.channel.sendTyping();
+    const fullResponse = await conversation.sendMessage(message.content, {
+      timeoutMs: 60000,
+      async onProgress(partialResponse) {
+        const newChars = partialResponse.length - prevPartialResponse.length;
+        totalChars += newChars;
 
-    try {
-      const reply = await conversation.sendMessage(message.content, {
-        timeoutMs: 60000,
-      });
-      await message.reply(reply);
-    } catch (error) {
-      console.error(error);
-      await message.reply('ChatGPT timed out.');
-    }
+        if (totalChars >= 125) {
+          reply = await reply.edit(`${partialResponse}... ${blinkingCursor}`);
+          totalChars = 0;
+        }
+
+        prevPartialResponse = partialResponse;
+      },
+    });
+
+    await reply.edit(fullResponse);
+  } catch (error) {
+    console.error(error);
+    message.reply('ChatGPT timed out.');
   }
 });
 
 client.on(Events.InteractionCreate, async (interaction) => {
   if (!interaction.isChatInputCommand()) return;
-  const command = commands.get(interaction.commandName);
+  const command = store.commands.get(interaction.commandName);
 
   if (!command) {
     console.error(`No command matching ${interaction.commandName} was found.`);
@@ -113,7 +81,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
   }
 
   try {
-    await command.execute(interaction);
+    await command.execute(interaction, { client, chatgpt });
   } catch (error) {
     console.error(error);
     await interaction.reply({
