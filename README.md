@@ -1,6 +1,6 @@
 <a href="https://discord.com/api/oauth2/authorize?client_id=1050560613719494726&permissions=1067404090688&scope=bot%20applications.commands">
   <p align="center">
-    <img width=500 src="https://raw.githubusercontent.com/CatWithAWand/gpt-chan/main/logo.png"/>
+    <img width=250 src="https://raw.githubusercontent.com/CatWithAWand/gpt-chan/main/logo.png?token=GHSAT0AAAAAAB3UTLM4FGKBE7YDGA6QL2CIY4SVJQQ"/>
   </p>
 </a>
 
