@@ -31,7 +31,9 @@
     "build": "tsc",
     "build:analyze": "ANALYZE=true npm run build",
     "dev": "nodemon",
-    "lint": "",
+    "lint": "eslint . --ext .ts",
+    "lint:fix": "eslint . --ext .ts --fix",
+    "prettier": "prettier --write .",
     "start": "ts-node-esm src/index.ts",
     "start:node": "node dist/index.js"
   },
