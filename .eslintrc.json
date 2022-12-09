@@ -1,0 +1,44 @@
+{
+  "root": true,
+  "env": {
+    "es6": true,
+    "node": true
+  },
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "eccmaVersion": "latest",
+    "project": "./tsconfig.json",
+    "tsconfigRootDir": "."
+  },
+  "globals": {
+    "NodeJS": true
+  },
+  "plugins": ["@typescript-eslint", "prettier"],
+  "extends": [
+    "plugin:@typescript-eslint/recommended",
+    "plugin:prettier/recommended",
+    "prettier"
+  ],
+  "rules": {
+    "no-bitwise": 0,
+    "no-unused-vars": "off",
+    "no-unexpected-multiline": "error",
+    "@typescript-eslint/consistent-type-imports": "warn",
+    "prettier/prettier": [
+      2,
+      {
+        "tabWidth": 2,
+        "useTabs": false,
+        "semi": true,
+        "bracketSpacing": true,
+        "quoteProps": "as-needed",
+        "singleQuote": true,
+        "printWidth": 80,
+        "trailingComma": "all",
+        "endOfLine": "lf",
+        "arrowParens": "always"
+      }
+    ]
+  },
+  "ignorePatterns": ["node_modules", "dist", "*.config.js"]
+}
