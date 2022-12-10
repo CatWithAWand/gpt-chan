@@ -31,11 +31,12 @@
     "cm:s": "git-cz -S",
     "build": "tsc",
     "build:analyze": "ANALYZE=true npm run build",
-    "dev": "nodemon",
+    "dev": "dotenv -e .env.development -- nodemon",
     "lint": "eslint . --ext .ts",
     "lint:fix": "eslint . --ext .ts --fix",
     "prettier": "prettier --write .",
-    "start": "ts-node-esm src/index.ts"
+    "start:dev": "dotenv -e .env.development -- ts-node-esm src/index.ts",
+    "start:prod": "dotenv -e .env.production -- ts-node-esm src/index.ts"
   },
   "dependencies": {
     "bufferutil": "^4.0.7",
@@ -56,6 +57,7 @@
     "@typescript-eslint/parser": "^5.46.0",
     "commitizen": "^4.2.6",
     "cz-conventional-changelog": "3.3.0",
+    "dotenv-cli": "^6.0.0",
     "eslint": "^8.29.0",
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-prettier": "^4.2.1",

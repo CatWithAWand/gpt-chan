@@ -38,60 +38,65 @@ puppeteer.use(AdblockerPlugin({ blockTrackers: true }));
 
 let retries = 0;
 
-const getSessionToken = async (email: string, password: string) => {
-  console.log('Attempting to get session token...');
-  const browser = await puppeteer.launch(puppeteerOptions);
+const getSessionToken = async (
+  email: string,
+  password: string,
+): Promise<string> => {
+  return new Promise(async (resolve) => {
+    console.log('Attempting to acquire session token...');
+    const browser = await puppeteer.launch(puppeteerOptions);
 
-  try {
-    const page = await browser.newPage();
+    try {
+      const page = await browser.newPage();
 
-    await page.setUserAgent(USER_AGENT);
-    await page.goto(OPENAI_LOGIN_URL, { waitUntil: 'networkidle0' });
+      await page.setUserAgent(USER_AGENT);
+      await page.goto(OPENAI_LOGIN_URL, { waitUntil: 'domcontentloaded' });
 
-    await page.waitForSelector(SELECTORS.loginButton);
-    await page.click(SELECTORS.loginButton);
+      await page.waitForSelector(SELECTORS.loginButton);
+      await page.click(SELECTORS.loginButton);
 
-    await page.waitForNavigation({ waitUntil: 'networkidle0' });
-    await page.waitForSelector(SELECTORS.idLoginButton);
-    await page.type(SELECTORS.emailInput, email, {
-      delay: randomFromRange(200, 500),
-    });
-    await page.click(SELECTORS.idLoginButton);
+      await page.waitForNavigation({ waitUntil: 'domcontentloaded' });
+      await page.waitForSelector(SELECTORS.idLoginButton);
+      await page.type(SELECTORS.emailInput, email, {
+        delay: randomFromRange(200, 500),
+      });
+      await page.click(SELECTORS.idLoginButton);
 
-    await page.waitForNavigation({ waitUntil: 'networkidle0' });
-    await page.waitForSelector(SELECTORS.passwordInput);
-    await page.type(SELECTORS.passwordInput, password, {
-      delay: randomFromRange(200, 500),
-    });
-    await page.click(SELECTORS.passwordLoginButton);
+      await page.waitForNavigation({ waitUntil: 'domcontentloaded' });
+      await page.waitForSelector(SELECTORS.passwordInput);
+      await page.type(SELECTORS.passwordInput, password, {
+        delay: randomFromRange(200, 500),
+      });
+      await page.click(SELECTORS.passwordLoginButton);
 
-    await page.waitForNavigation({ waitUntil: 'networkidle0' });
-    const cookies = await page.cookies();
-    const sessionToken = cookies.find(
-      (cookie) => cookie.name === SELECTORS.sessionToken,
-    )?.value;
+      await page.waitForNavigation({ waitUntil: 'networkidle0' });
+      const cookies = await page.cookies();
+      const sessionToken = cookies.find(
+        (cookie) => cookie.name === SELECTORS.sessionToken,
+      )?.value;
 
-    if (!sessionToken) {
-      throw new Error('No session token found!');
-    }
+      if (!sessionToken) {
+        throw new Error('No session token found!');
+      }
 
-    console.log('Successfully acquired session token!');
-    retries = 0;
-    return sessionToken;
-  } catch (error) {
-    console.error(error);
-    if (retries < MAX_RETRIES) {
+      console.log('Successfully acquired session token!');
+      retries = 0;
+      resolve(sessionToken);
+    } catch (error) {
+      console.error(error);
+      if (retries >= MAX_RETRIES) {
+        console.log('Max retries reached. Exiting...');
+        process.exit(1);
+      }
+
       retries += 1;
-      const retryDelay = INITIAL_RETRY_DELAY * retries;
+      const retryDelay = INITIAL_RETRY_DELAY * retries ** 2;
       console.log(`Retrying in ${retryDelay / 1000} seconds...`);
       setTimeout(() => getSessionToken(email, password), retryDelay);
-    } else {
-      console.log('Max retries reached. Exiting...');
-      process.exit(1);
+    } finally {
+      await browser.close();
     }
-  } finally {
-    await browser.close();
-  }
+  });
 };
 
 export { getSessionToken };
