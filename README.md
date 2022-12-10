@@ -33,3 +33,4 @@ Todo:
 
 - On message edit, revaluate reply
 - Support for cross conversation replies
+- Containerize (Docker)
