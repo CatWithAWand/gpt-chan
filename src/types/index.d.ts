@@ -2,7 +2,7 @@ import type { CommandInteraction, SlashCommandBuilder } from 'discord.js';
 
 export interface Clients {
   client: Client;
-  chatgpt: ChatGPTAPI;
+  chatGPT: ChatGPTAPI;
 }
 
 export interface SlashCommand {

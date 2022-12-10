@@ -59,7 +59,7 @@ const deployCommands = async (
 
     return DeployCommandsResult.Success;
   } catch (error) {
-    console.error('Failed to reload application slash commands.', error);
+    console.error('Failed to reload application slash commands: ', error);
     return DeployCommandsResult.Error;
   }
 };

@@ -1,11 +1,19 @@
 import dotenv from 'dotenv';
+import type { Message } from 'discord.js';
 import { Client, Events, GatewayIntentBits, Partials } from 'discord.js';
-import { ChatGPTAPI } from 'chatgpt';
+import type { ChatGPTConversation } from 'chatgpt';
+import { chatGPT, authorizeChatGPT } from './chatgpt.js';
 import store from './store/store.js';
 import { blinkingCursor } from './store/emotes.js';
 import { deployCommands, loadCommands } from './utils/commandUtils.js';
 import { isValidMessage } from './utils/eventUtils.js';
 dotenv.config();
+
+enum ChatGPTResponseStatus {
+  Done = 'done',
+  InProgress = 'in_progress',
+  Error = 'error',
+}
 
 const client = new Client({
   partials: [Partials.Message, Partials.Channel, Partials.Reaction],
@@ -18,10 +26,8 @@ const client = new Client({
     GatewayIntentBits.Guilds,
   ],
 });
-const chatgpt = new ChatGPTAPI({
-  sessionToken: process.env.CHATGPT_SESSION_TOKEN,
-});
 
+await authorizeChatGPT();
 store.commands = await loadCommands();
 
 client.once(Events.ClientReady, async (c) => {
@@ -32,43 +38,68 @@ client.once(Events.ClientReady, async (c) => {
   c.user.setActivity(`Let's chat!`);
 });
 
+const handleMessageReply = async (
+  message: Message<boolean>,
+  conversation: ChatGPTConversation,
+  onProgressCallBack: (
+    partialResponse: string,
+    done: ChatGPTResponseStatus,
+  ) => void,
+) => {
+  try {
+    let totalChars = 0;
+    let prevPartialResponse = '';
+
+    conversation
+      .sendMessage(message.content, {
+        timeoutMs: 60000,
+        onProgress(partialResponse) {
+          const newChars = partialResponse.length - prevPartialResponse.length;
+          totalChars += newChars;
+
+          if (totalChars >= 125) {
+            onProgressCallBack(
+              partialResponse,
+              ChatGPTResponseStatus.InProgress,
+            );
+            totalChars = 0;
+          }
+
+          prevPartialResponse = partialResponse;
+        },
+      })
+      .then((response) => {
+        onProgressCallBack(response, ChatGPTResponseStatus.Done);
+      });
+  } catch (error) {
+    console.error(error);
+    onProgressCallBack(
+      'ChatGPT timed out. Please try again later.',
+      ChatGPTResponseStatus.Error,
+    );
+  }
+};
+
 client.on(Events.MessageCreate, async (message) => {
   if (!isValidMessage(message)) return;
 
   let conversation = store.userConversations.get(message.author.id);
 
   if (!conversation) {
-    conversation = chatgpt.getConversation();
+    conversation = chatGPT.getConversation();
     store.userConversations.set(message.author.id, conversation);
   }
 
-  try {
-    let reply = await message.reply(`ChatGPT is thinking... ${blinkingCursor}`);
-    message.channel.sendTyping();
+  const reply = await message.reply(`ChatGPT is thinking... ${blinkingCursor}`);
 
-    let totalChars = 0;
-    let prevPartialResponse = '';
-
-    const fullResponse = await conversation.sendMessage(message.content, {
-      timeoutMs: 60000,
-      async onProgress(partialResponse) {
-        const newChars = partialResponse.length - prevPartialResponse.length;
-        totalChars += newChars;
-
-        if (totalChars >= 125) {
-          reply = await reply.edit(`${partialResponse}... ${blinkingCursor}`);
-          totalChars = 0;
-        }
-
-        prevPartialResponse = partialResponse;
-      },
-    });
-
-    await reply.edit(fullResponse);
-  } catch (error) {
-    console.error(error);
-    message.reply('ChatGPT timed out.');
-  }
+  handleMessageReply(message, conversation, async (partialResponse, done) => {
+    await reply.edit(
+      `${
+        partialResponse +
+        (done === ChatGPTResponseStatus.InProgress ? blinkingCursor : '')
+      }`,
+    );
+  });
 });
 
 client.on(Events.InteractionCreate, async (interaction) => {
@@ -81,7 +112,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
   }
 
   try {
-    await command.execute(interaction, { client, chatgpt });
+    await command.execute(interaction, { client, chatGPT });
   } catch (error) {
     console.error(error);
     await interaction.reply({

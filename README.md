@@ -22,3 +22,14 @@
 GPT-chan allows you to talk to OpenAI's GPT-3.5 chatbot in Discord.
 
 Click <a href="https://discord.com/api/oauth2/authorize?client_id=1050560613719494726&permissions=1067404090688&scope=bot%20applications.commands">here</a> to invite the bot to your Discord server.
+
+Features:
+
+- Each user has their own conversation
+- You can talk to the bot in DMs or in a server
+- You can use the bot in multiple servers
+
+Todo:
+
+- On message edit, revaluate reply
+- Support for cross conversation replies

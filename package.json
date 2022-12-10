@@ -9,6 +9,7 @@
   },
   "license": "MIT",
   "keywords": [
+    "ai",
     "discord",
     "bot",
     "discord-bot",
@@ -42,6 +43,10 @@
     "discord.js": "^14.7.1",
     "dotenv": "^16.0.3",
     "erlpack": "^0.1.4",
+    "puppeteer": "^19.4.0",
+    "puppeteer-extra": "^3.3.4",
+    "puppeteer-extra-plugin-adblocker": "^2.13.5",
+    "puppeteer-extra-plugin-stealth": "^2.11.1",
     "utf-8-validate": "^5.0.10",
     "zlib-sync": "^0.1.7"
   },
