@@ -83,8 +83,6 @@ const handleMessageReply = async (
 client.on(Events.MessageCreate, async (message) => {
   if (!isValidMessage(message)) return;
 
-  console.log(chatGPT);
-
   let conversation = store.userConversations.get(message.author.id);
 
   if (!conversation) {

@@ -50,19 +50,19 @@ const getSessionToken = async (
       const page = await browser.newPage();
 
       await page.setUserAgent(USER_AGENT);
-      await page.goto(OPENAI_LOGIN_URL, { waitUntil: 'domcontentloaded' });
+      await page.goto(OPENAI_LOGIN_URL, { waitUntil: 'networkidle0' });
 
       await page.waitForSelector(SELECTORS.loginButton);
       await page.click(SELECTORS.loginButton);
 
-      await page.waitForNavigation({ waitUntil: 'domcontentloaded' });
+      await page.waitForNavigation({ waitUntil: 'networkidle0' });
       await page.waitForSelector(SELECTORS.idLoginButton);
       await page.type(SELECTORS.emailInput, email, {
         delay: randomFromRange(200, 500),
       });
       await page.click(SELECTORS.idLoginButton);
 
-      await page.waitForNavigation({ waitUntil: 'domcontentloaded' });
+      await page.waitForNavigation({ waitUntil: 'networkidle0' });
       await page.waitForSelector(SELECTORS.passwordInput);
       await page.type(SELECTORS.passwordInput, password, {
         delay: randomFromRange(200, 500),
