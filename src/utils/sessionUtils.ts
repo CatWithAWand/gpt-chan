@@ -1,3 +1,4 @@
+import logger from '../logger.js';
 import { executablePath } from 'puppeteer';
 import puppeteer from 'puppeteer-extra';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
@@ -43,7 +44,11 @@ const getSessionToken = async (
   password: string,
 ): Promise<string> => {
   return new Promise(async (resolve) => {
-    console.log('Attempting to acquire session token...');
+    logger.info({
+      event: 'AcquireSessionToken',
+      msg: 'Attempting to acquire session token...',
+    });
+
     const browser = await puppeteer.launch(puppeteerOptions);
 
     try {
@@ -79,19 +84,29 @@ const getSessionToken = async (
         throw new Error('No session token found!');
       }
 
-      console.log('Successfully acquired session token!');
+      logger.info({
+        event: 'AcquireSessionToken',
+        msg: 'Successfully acquired session token',
+      });
       retries = 0;
       resolve(sessionToken);
     } catch (error) {
-      console.error(error);
       if (retries >= MAX_RETRIES) {
-        console.log('Max retries reached. Exiting...');
+        logger.fatal({
+          event: 'AcquireSessionToken',
+          msg: 'Max retries reached. Exiting...',
+          err: error,
+        });
         process.exit(1);
       }
 
       retries += 1;
       const retryDelay = INITIAL_RETRY_DELAY * retries ** 2;
-      console.log(`Retrying in ${retryDelay / 1000} seconds...`);
+      logger.warn({
+        event: 'AcquireSessionToken',
+        msg: `Retrying in ${retryDelay / 1000} seconds...`,
+        err: error,
+      });
       setTimeout(() => getSessionToken(email, password), retryDelay);
     } finally {
       await browser.close();

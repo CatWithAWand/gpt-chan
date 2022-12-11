@@ -1,11 +1,12 @@
+import logger from './logger.js';
 import { Client, Events, GatewayIntentBits, Partials } from 'discord.js';
-import type { ChatGPTConversation } from 'chatgpt';
 import { chatGPT, authorizeChatGPT } from './chatgpt.js';
-import type { ConversationMessage } from './store/store.js';
 import store from './store/store.js';
 import { blinkingCursor } from './store/emotes.js';
 import { deployCommands, loadCommands } from './utils/commandUtils.js';
 import { isValidMessage } from './utils/eventUtils.js';
+import type { ChatGPTConversation } from 'chatgpt';
+import type { ConversationMessage } from './store/store.js';
 
 enum ChatGPTResponseStatus {
   Done = 'done',
@@ -25,13 +26,18 @@ const client = new Client({
   ],
 });
 
-console.log(`Environment: ${process.env.NODE_ENV}`);
+logger.info({ msg: `Environment: ${process.env.NODE_ENV}` });
 
 await authorizeChatGPT();
 store.commands = await loadCommands();
 
 client.once(Events.ClientReady, async (c) => {
-  console.log(`Ready! Logged in as ${c.user.tag}`);
+  logger.info({
+    event: Events.ClientReady,
+    userId: c.user.id,
+    user: c.user.tag,
+  });
+
   c.user.setStatus('invisible');
   await deployCommands(c.user.id, store.commands);
   c.user.setStatus('online');
@@ -72,7 +78,7 @@ const handleMessageReply = async (
     .catch((error) => {
       if (error instanceof DOMException && error.name == 'AbortError') return;
 
-      console.error(error);
+      logger.error({ event: 'ChatGPTError', err: error });
       onProgressCallBack(
         'ChatGPT timed out. Please try again later.',
         ChatGPTResponseStatus.Error,
@@ -89,6 +95,17 @@ client.on(Events.MessageCreate, async (message) => {
     conversation = chatGPT.getConversation();
     store.userConversations.set(message.author.id, conversation);
   }
+
+  logger.info({
+    event: Events.MessageCreate,
+    userId: message.author.id,
+    user: message.author.tag,
+    messageId: message.id,
+    messageContent: message.cleanContent.substring(0, 250),
+    channelId: message.channel?.id ?? '',
+    guildId: message.guild?.id ?? '',
+    conversationId: conversation.conversationId,
+  });
 
   const reply = await message.reply(`ChatGPT is thinking... ${blinkingCursor}`);
   const conversationMessage = {
@@ -121,6 +138,7 @@ client.on(Events.MessageCreate, async (message) => {
 client.on(Events.MessageUpdate, async (oldMessage, newMessage) => {
   if (newMessage.partial || oldMessage.partial || !isValidMessage(newMessage))
     return;
+
   const conversationMessage = store.activeMessages.get(newMessage.id);
 
   if (!conversationMessage) return;
@@ -138,6 +156,17 @@ client.on(Events.MessageUpdate, async (oldMessage, newMessage) => {
     conversation = chatGPT.getConversation();
     store.userConversations.set(newMessage.author.id, conversation);
   }
+
+  logger.info({
+    event: Events.MessageUpdate,
+    userId: newMessage.author.id,
+    user: newMessage.author.tag,
+    messageId: newMessage.id,
+    messageContent: newMessage.cleanContent.substring(0, 250),
+    channelId: newMessage.channel?.id ?? '',
+    guildId: newMessage.guild?.id ?? '',
+    conversationId: conversation.conversationId,
+  });
 
   store.activeMessages.set(newMessage.id, conversationMessage);
   await reply.edit(`ChatGPT is thinking... ${blinkingCursor}`);
@@ -165,14 +194,27 @@ client.on(Events.InteractionCreate, async (interaction) => {
   const command = store.commands.get(interaction.commandName);
 
   if (!command) {
-    console.error(`No command matching ${interaction.commandName} was found.`);
+    logger.warn({
+      event: Events.InteractionCreate,
+      msg: `Command '${interaction.commandName}' found`,
+    });
     return;
   }
+
+  logger.info({
+    event: Events.InteractionCreate,
+    userId: interaction.user.id,
+    user: interaction.user.tag,
+    interactionId: interaction.id,
+    interactionName: interaction.commandName,
+    channelId: interaction.channel?.id ?? '',
+    guildId: interaction.guild?.id ?? '',
+  });
 
   try {
     await command.execute(interaction, { client, chatGPT });
   } catch (error) {
-    console.error(error);
+    logger.error({ event: 'CommandError', err: error });
     await interaction.reply({
       content: 'There was an error while executing this command!',
       ephemeral: true,

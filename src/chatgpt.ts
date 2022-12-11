@@ -1,3 +1,4 @@
+import logger from './logger.js';
 import { ChatGPTAPI } from 'chatgpt';
 import { getSessionToken } from './utils/sessionUtils.js';
 
@@ -20,9 +21,18 @@ const authorizeChatGPT = async () => {
 
     await chatGPT.ensureAuth();
 
-    console.log('Successfully authorized ChatGPT!');
+    logger.info({
+      event: 'ChatGPTAuthorized',
+      status: 'success',
+      msg: 'Succesfully authorized ChatGPT',
+    });
   } catch (error) {
-    console.error('Failed to authorize ChatGPT!');
+    logger.error({
+      event: 'ChatGPTAuthorized',
+      status: 'error',
+      msg: 'Failed to authorize ChatGPT',
+      err: error,
+    });
     throw error;
   } finally {
     setTimeout(authorizeChatGPT, REAUTHORIZE_INTERVAL);

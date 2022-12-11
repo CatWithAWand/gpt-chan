@@ -1,3 +1,4 @@
+import logger from '../logger.js';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -25,9 +26,10 @@ const loadCommands = async (): Promise<Collection<string, SlashCommand>> => {
     if ('data' in command && 'execute' in command) {
       commands.set(command.data.name, command);
     } else {
-      console.log(
-        `[WARNING] The command at ${filePath} is missing a required "data" or "execute" property.`,
-      );
+      logger.warn({
+        event: 'CommandLoadError',
+        msg: `The command at ${filePath} is missing a required "data" or "execute" property`,
+      });
     }
   }
 
@@ -39,9 +41,10 @@ const deployCommands = async (
   commands: Collection<string, SlashCommand>,
 ): Promise<DeployCommandsResult> => {
   try {
-    console.log(
-      `Started reloading ${commands.size} application slash commands.`,
-    );
+    logger.info({
+      event: 'DeployCommands',
+      msg: `Started reloading ${commands.size} application slash commands`,
+    });
 
     const commandsData = commands.map((command) => command.data.toJSON());
 
@@ -53,13 +56,18 @@ const deployCommands = async (
       body: commandsData,
     });
 
-    console.log(
-      `Successfully reloaded ${data.length} application slash commands.`,
-    );
+    logger.info({
+      event: 'DeployCommands',
+      msg: `Successfully reloaded ${data.length}/${commands.size} application slash commands`,
+    });
 
     return DeployCommandsResult.Success;
   } catch (error) {
-    console.error('Failed to reload application slash commands: ', error);
+    logger.error({
+      event: 'DeployCommands',
+      msg: 'Failed to reload application slash commands',
+      err: error,
+    });
     return DeployCommandsResult.Error;
   }
 };
